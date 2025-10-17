@@ -95,14 +95,33 @@
     $use.on('click', function(e){
       e.preventDefault();
       if (!cropper) return;
+
       var c = cropper.getCroppedCanvas({ width: 700, height: 900 });
       if (!c) { alert('Could not crop.'); return; }
-      var dataUrl = c.toDataURL('image/jpeg', 0.92);
-      // Send the cropped image back to home.jsp
-      if (window.opener && typeof window.opener.receiveCroppedImage === 'function') {
-        window.opener.receiveCroppedImage(dataUrl);
-      }
-      window.close();
+
+      // Convert to blob and upload to backend
+      c.toBlob(function(blob) {
+        var formData = new FormData();
+        formData.append("file", blob, "cropped.jpg");
+
+        $.ajax({
+          url: "${pageContext.request.contextPath}/uploadCropped",
+          method: "POST",
+          data: formData,
+          processData: false,
+          contentType: false,
+          success: function(responseUrl) {
+            // Send the URL back to the parent
+            if (window.opener && typeof window.opener.receiveCroppedImage === 'function') {
+              window.opener.receiveCroppedImage(responseUrl);
+            }
+            window.close();
+          },
+          error: function(xhr) {
+            alert("Upload failed: " + (xhr.responseText || xhr.statusText));
+          }
+        });
+      }, 'image/jpeg', 0.92);
     });
   })();
 </script>

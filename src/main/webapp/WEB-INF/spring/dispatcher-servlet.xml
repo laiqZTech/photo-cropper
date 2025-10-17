@@ -12,6 +12,8 @@
 
     <mvc:annotation-driven/>
 
+    <mvc:resources mapping="/storage/**" location="file:./storage/"/>
+
     <!-- JSP view resolver -->
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="prefix" value="/WEB-INF/views/"/>

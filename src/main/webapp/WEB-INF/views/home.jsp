@@ -55,9 +55,9 @@
     var popupUrl = ctx + "/crop";
 
     // Function called by popup when cropping is done
-    window.receiveCroppedImage = function(dataUrl) {
+    window.receiveCroppedImage = function(imageUrl) {
         var img = document.getElementById('croppedImage');
-        img.src = dataUrl;
+        img.src = imageUrl;
         img.style.display = 'inline-block';
     };
 
