@@ -3,41 +3,36 @@ package com.ztl.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.UUID;
+import java.nio.file.StandardCopyOption;
 
 @Service
 public class ImageStorageService {
 
-    private final Path storageDir = Paths.get(System.getProperty("user.dir"), "storage");
+    private final Path storageDir;
 
     public ImageStorageService() throws IOException {
+        // Save images under the project's "storage" folder
+        storageDir = Paths.get(System.getProperty("user.dir"), "storage");
         if (!Files.exists(storageDir)) {
             Files.createDirectories(storageDir);
         }
     }
 
-    /** Saves uploaded image to filesystem and returns the accessible relative URL path. */
-    public String saveImage(MultipartFile file) throws IOException {
-        String ext = "jpg";
-        String original = file.getOriginalFilename();
-        if (original != null && original.contains(".")) {
-            ext = original.substring(original.lastIndexOf('.') + 1);
-        }
-
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
-        String filename = "photo-" + timestamp + "-" + UUID.randomUUID() + "." + ext;
-
+    /**
+     * Save or overwrite an image file, returning the relative URL.
+     *
+     * @param file     the file from the client
+     * @param filename desired filename (existing or new)
+     * @return the relative URL for the saved image
+     */
+    public String saveImage(MultipartFile file, String filename) throws IOException {
         Path target = storageDir.resolve(filename);
-        Files.copy(file.getInputStream(), target);
-
-        // Return a relative URL for later display, e.g. /photo-cropper/storage/photo-...
+        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+        // Return the URL relative to the context path; adjust if your context changes
         return "/photo-cropper/storage/" + filename;
     }
 }

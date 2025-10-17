@@ -202,7 +202,7 @@
 
 <body>
 <header>
-    <h2>Upload and Crop Photo – ID Card Guidelines</h2>
+    <h2>Identity & Immunity Card Request</h2>
 </header>
 
 <main>
@@ -259,6 +259,23 @@
         var $use = $('#useBtn');
         var $placeholder = $('#placeholder');
         var preview = document.getElementById('preview');
+
+        // Parse query parameter
+        function getQueryParam(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+
+        const existingPhotoName = getQueryParam("photoName");
+        if (existingPhotoName) {
+            const existingPhotoUrl = "${pageContext.request.contextPath}/storage/" + existingPhotoName;
+            const imgElement = document.getElementById("img");
+            imgElement.src = existingPhotoUrl;
+            imgElement.onload = function() {
+                $("#placeholder").hide();
+                initCropper();
+            };
+        }
 
         function initCropper(){
             if (cropper) { try { cropper.destroy(); } catch(e){} }
@@ -341,7 +358,10 @@
 
             canvas.toBlob(function(blob) {
                 var formData = new FormData();
-                formData.append("file", blob, "cropped.jpg");
+                // Determine target filename: reuse existing or generate unique
+                const targetName = existingPhotoName || ("cropped-" + Date.now() + ".jpg");
+                formData.append("file", blob, targetName);
+                formData.append("name", targetName);
 
                 $.ajax({
                     url: "${pageContext.request.contextPath}/uploadCropped",

@@ -19,9 +19,14 @@ public class HomeController {
 
     @PostMapping("/uploadCropped")
     @ResponseBody
-    public ResponseEntity<?> uploadCropped(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadCropped(@RequestParam("file") MultipartFile file,
+                                           @RequestParam(value = "name", required = false) String name) {
         try {
-            String savedUrl = imageStorageService.saveImage(file);
+            // If a name is supplied, we overwrite the existing file; otherwise we use the original filename
+            String savedUrl = imageStorageService.saveImage(
+                    file,
+                    (name != null && !name.isEmpty()) ? name : file.getOriginalFilename()
+            );
             return ResponseEntity.ok(savedUrl);
         } catch (Exception e) {
             e.printStackTrace();
@@ -30,14 +35,15 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String home(Model model) {
-        model.addAttribute("app", "photo-cropper");
-        model.addAttribute("message", "Spring MVC + JSP is up.");
-        return "home"; // -> /WEB-INF/jsp/home.jsp
+    public String home(Model model,
+                       @RequestParam(value = "photoName", required = false) String photoName) {
+        // Expose the existing photoName to the JSP, if present
+        model.addAttribute("photoName", photoName);
+        return "home"; // maps to /WEB-INF/jsp/home.jsp
     }
 
     @GetMapping("/crop")
     public String cropPage() {
-        return "crop";
+        return "crop"; // maps to /WEB-INF/jsp/crop.jsp
     }
 }

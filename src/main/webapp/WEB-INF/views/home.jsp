@@ -40,30 +40,41 @@
 <p>Click the button below to upload and crop an image.</p>
 
 <!-- Upload link -->
-<a href="#" id="openCropperPopup" class="btn">Upload & Crop Image</a>
+<a href="#" id="openCropperPopup" class="btn">Upload &amp; Crop Image</a>
 
 <!-- Result area -->
 <div class="result">
     <p><strong>Cropped Result:</strong></p>
-    <img id="croppedImage" alt="Cropped image will appear here" style="display:none;">
+    <c:choose>
+        <c:when test="${not empty photoName}">
+            <!-- Show existing photo if present -->
+            <img id="croppedImage" src="${pageContext.request.contextPath}/storage/${photoName}" alt="Employee Photo"
+                 style="max-width: 360px; border: 1px solid #ccc; border-radius: 4px;">
+        </c:when>
+        <c:otherwise>
+            <!-- Hidden until a new crop is returned -->
+            <img id="croppedImage" alt="Cropped image will appear here" style="display:none;">
+        </c:otherwise>
+    </c:choose>
 </div>
 
 <!-- JavaScript -->
 <script>
-    // Get the context path dynamically (e.g., /photo-cropper)
+    // Get context path dynamically (e.g., /photo-cropper)
     var ctx = "${pageContext.request.contextPath}";
-    var popupUrl = ctx + "/crop";
+    var photoName = "${photoName != null ? photoName : ''}";
 
     // Function called by popup when cropping is done
     window.receiveCroppedImage = function(imageUrl) {
         var img = document.getElementById('croppedImage');
-        img.src = imageUrl;
+        img.src = imageUrl + "?t=" + new Date().getTime();
         img.style.display = 'inline-block';
     };
 
     // Open popup for cropping
     document.getElementById('openCropperPopup').addEventListener('click', function(e) {
         e.preventDefault();
+        var popupUrl = ctx + "/crop" + (photoName ? "?photoName=" + encodeURIComponent(photoName) : "");
         window.open(
             popupUrl,
             'cropperPopup',
